@@ -1,0 +1,54 @@
+Software versions used
+	python : 2.7.6 
+	pandas : 0.13.1
+
+1. How will you analyze this data for cleanliness? 
+	Mainly data cleanliness could be checked via three methods
+
+	1> Data not available: Nan values
+		In the time series given it might be possible that values are not at all recorded at particular timestamp
+		for single or group of serieses. Values are not recorded, though they were present, so these values can
+		not be replaced by 0 or any default value.
+
+	2> Data has impossible/out of range values
+		The given time series is represents incrimental difference between two readings taken at the timestamp.
+		The difference could be +ve or -ve value, but there is certain range between which we will have values. 
+		If the value recorded , difference between two successive reading, is lying out of range then it could
+		be wrong reading. Spikes and deeps, when plotted graph, in the data represent such impossible values
+	
+	3> Data is in inconsitent format.
+		Time series values difference is in floating format, strictly numeric format. If the values recorded 
+		have any alphanumeric value, then it might be possible that we are looking at totally wrong observation.
+
+a. Apply your suggestions to this data and describe ways in which it is not clean.
+	
+	a.1 Data not available	
+
+
+
+
+
+
+StackOverflow
+
+Python :
+	http://stackoverflow.com/questions/4383571/importing-files-from-different-folder-in-python
+	http://stackoverflow.com/questions/20309456/how-to-call-a-function-from-another-file-in-python
+	http://stackoverflow.com/questions/5574702/how-to-print-to-stderr-in-python
+	https://docs.python.org/2/library/getopt.html
+
+Python-multithreading :
+	http://stackoverflow.com/questions/11968689/python-multithreading-wait-till-all-threads-finished
+
+Pandas:
+	http://pandas.pydata.org/pandas-docs/version/0.13.1/generated/pandas.io.parsers.read_csv.html
+	http://stackoverflow.com/questions/26266362/how-to-count-the-nan-values-in-the-column-in-panda-data-frame
+
+stats:
+	https://en.wikipedia.org/wiki/Standard_deviation
+	http://smallbusiness.chron.com/difference-between-sample-population-standard-deviation-22639.html
+	https://statistics.laerd.com/statistical-guides/measures-of-spread-standard-deviation.php
+
+
+
+
