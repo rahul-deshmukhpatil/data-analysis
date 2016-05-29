@@ -37,6 +37,16 @@ def check_dq_of_ts(ts, index):
     with print_lock:
         print "ts: %d, mean: %f, stddev : %f, total_records %d, bad_prct %f, bad_records %d ( nan_count %d + lower_breaks %d + upper_breaks %d)" %(index, mean, stddev, total_records, prct_bad, bad_records, nan_count, lower_breaks, upper_breaks)
 
+    plt.plot(ts.cumsum())
+    fig='images/ts' + `index` + '-incremental.png'
+    plt.savefig(fig)
+    plt.close()
+
+    plt.plot(ts.replace(to_replace='NaN', value=stddev*5), 'bo')
+    fig='images/ts' + `index` + '-dataQaulity.png'
+    plt.savefig(fig)
+    plt.close()
+
 # Usage help
 ###############################################################
 def usage():
@@ -111,5 +121,7 @@ if not exists(dataLarge):
 else:
     eprint("Processing data file : %s " %(dataLarge))
 
+if not os.path.exists('images'):
+    os.makedirs('images')
 
 main()
