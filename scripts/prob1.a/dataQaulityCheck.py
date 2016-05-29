@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # Global imports
 import os
 import sys
@@ -37,11 +39,22 @@ def check_dq_of_ts(ts, index):
     with print_lock:
         print "ts: %d, mean: %f, stddev : %f, total_records %d, bad_prct %f, bad_records %d ( nan_count %d + lower_breaks %d + upper_breaks %d)" %(index, mean, stddev, total_records, prct_bad, bad_records, nan_count, lower_breaks, upper_breaks)
 
+    #plot the incrimental graph
+    plt.xlabel('Time')
+    plt.ylabel('Incrimental Difference Summation')
+    plt.title('Incrimental Difference Summation: Time series ' +  `index`)
     plt.plot(ts.cumsum())
     fig='images/ts' + `index` + '-incremental.png'
     plt.savefig(fig)
     plt.close()
 
+    # Plot the difference graph 
+    stddevstr='stddev : ' + str(float(stddev))
+    #f, ax = plt.subplots(1,1)
+    #plt.text(0.05, 0.95, s=stddevstr, ha='left', va='center', transform = ax.transAxes)
+    plt.xlabel('Time')
+    plt.ylabel('Values(Difference recorded)')
+    plt.title('Distribution of Events Values : Time series ' +  `index` + ',' + stddevstr)
     plt.plot(ts.replace(to_replace='NaN', value=stddev*5), 'bo')
     fig='images/ts' + `index` + '-dataQaulity.png'
     plt.savefig(fig)
