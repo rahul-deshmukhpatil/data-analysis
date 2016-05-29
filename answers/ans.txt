@@ -17,17 +17,59 @@ Software versions used
 		be wrong reading. Spikes and deeps, when plotted graph, in the data represent such impossible values
 	
 	3> Data is in inconsitent format.
-		Time series values difference is in floating format, strictly numeric format. If the values recorded 
-		have any alphanumeric value, then it might be possible that we are looking at totally wrong observation.
+		Here, time series values are difference and are in floating format, strictly numeric format. If the values recorded 
+		have any alphanumeric value, because of recording error, then it might be possible that we are looking at totally wrong observation.
 
 a. Apply your suggestions to this data and describe ways in which it is not clean.
 	
-	a.1 Data not available	
+	I have written script  scripts/prob1.a/dataQaulityCheck.py. It has mean, std deviation, nan_count .
+	Where I have counted perct of bad records depending upon how many nan values are there in series, how many points are beyond
+	+ve and -ve range of  std_dev*5. The points std_dev*5 could be considered to check for the correctness. We can always specify
+	such limit, depending upon the mean or standard deviation so that such suspesious values could be caught.
 
+	a.1 Data not available: 
+		There are few time serieses where lot of records are given NaN. if you see the graph for the time series.
+		I have purposefully plotted NaN values at y=stddev*5. If you see a line at y=stddev*5, then those points
+		are representing the NaN. A continuos NaN line gives you idea that serveral values are missing.
+	
+	a.2 Data has impossible:
+		I did not find the evidences of the impossible values in the series. But I have found that there are
+		some values which fall behind the limit of stddev*5. Even such values are the rare, but they could be
+		checked for correctness. Here I have assumed that values beyond stddev*5 are the suspesious one and in
+		real life these limits could be different.
+	
+	a.3 Data is in inconsitent format.
+		Did not get any evidence of the incosistent format because of any recording error.
 
+2. Describe which parts (if any) of the data you would want to find ways to clean and which parts (if any) you would abandon as being beyond cleanable and why.
 
+	The only part which could be tested for recovery is NaN values, which represent the missing records.
 
+	1> Parts which could be recovered.
+		These are the scattered NaN values. There could be many methods/models to recover or reconstruct
+		the missing values
+		a. Analyising the similar time series. 
+			If two series have are following each other, or have some
+			kind of correlation between them, then it is possible to reconstruct the missing part of the 
+			the time series by analyzing other series. It might happen that both series showing similar
+			changes with respect to time or both of them are moving completly opposite to each other.
+			In both the cases it is possible to reconstruct the missing points.
+		b. Implementing interpolation methogsL:
+			You could use the interpolation methods, either linear or taylor series approximations to
+			recostruct the few missing values based of the values around the missing points. Data frame
+			of values used to reconstruct will give you the current trend/direction, which could be used
+			in general to recover missnig points.
 
+	2> Parts which could not be recoverd.
+		These are the continuos NaN samples in the time series. It is not possible to find the similar
+		time series which follows the same pattern as large chuck reprenting the movement for continously
+		large period of the time is abscent. Even to reconstruct the missing values, which are lot greater
+		in the number, we have only few point as in input to any recovery model/method. As well we can not
+		be sure if results are correct after forcefull application of such model.
+		
+		If you take example of time series 14, 17, 22, 25 they have respectively 61%, 45%, 64%, 75%  of the NaN
+		values.
+	
 
 StackOverflow
 
