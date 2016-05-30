@@ -21,10 +21,14 @@ from error_print import eprint
 # calculate the mean and std deviation 
 ###############################################################
 def cal_mean_std(index):
-    mean = total_sum[index] / total_samples[index]
-    variance_num = total_square_sum[index] + (total_samples[index]*(mean * mean)) - (2 * mean * total_sum[index])
-    variance = variance_num / (total_samples[index] - 1)
-    stddev = variance ** 0.5
+    mean = 0.0
+    stddev = 0.0
+
+    with sum_lock:
+		mean = total_sum[index] / total_samples[index]
+		variance_num = total_square_sum[index] + (total_samples[index]*(mean * mean)) - (2 * mean * total_sum[index])
+		variance = variance_num / (total_samples[index] - 1)
+		stddev = variance ** 0.5
     
     #eprint("ts: %d, total_sum %f, total_samples %d, total_square_sum %f" %(index, total_sum[index], total_samples[index], variance_num))
 
@@ -109,6 +113,11 @@ def main():
 # to synchronize the output
 global print_lock
 print_lock = Lock()
+
+# to synchronize the summations
+global sum_lock
+sum_lock = Lock()
+
 try:
     opts, args = getopt.getopt(sys.argv[1:], "hf:r:m", ["help", "file=", "rows=", "mt"])
 except getopt.GetoptError as err:
