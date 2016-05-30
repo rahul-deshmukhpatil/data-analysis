@@ -34,6 +34,8 @@ def cal_mean_std(ts):
         if(not np.isnan(float(ts.iloc[i]))):
            variance += (mean - ts.iloc[i]) * (mean - ts.iloc[i])
     
+    #eprint("total_sum %f, total_samples %d, total_square_sum %f" %(cumsum, ts.count(), variance))
+
     variance /= (ts.count() -1)
     stddev = variance ** (0.5) 
     return mean, stddev 
