@@ -44,8 +44,21 @@ def check_dq_of_ts(ts, index):
     stddev = ts.std()
     mean = ts.mean()
     cmean, cstddev = cal_mean_std(ts)
+
+    mean_test = 'FAIL' 
+    if(str(cmean) == str(mean)):
+        mean_test = 'PASS'
+
+    stddev_test = 'FAIL' 
+    if(str(cstddev) == str(stddev)):
+        stddev_test = 'PASS'
+
     with print_lock:
-        print "ts: %d, mean: %f, cmean: %f, stddev: %f, cstddev: %f" %(index, mean, cmean, stddev, cstddev)
+        print "ts: %d, mean: %f, cmean: %f, stddev: %f, cstddev: %f, mean_test %s, stddev_test: %s" %(index, mean, cmean, stddev, cstddev, mean_test, stddev_test)
+
+    if (mean_test == 'FAIL' or stddev_test == 'FAIL'):
+        eprint("For index : %d, mean_test: %s, stddev_test %s" %(index, mean_test, stddev_test))
+
 
 # Usage help
 ###############################################################
@@ -63,8 +76,8 @@ def usage():
 ###############################################################
 def main():
     #get the data into data frame
-    #df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, nrows=10)
-    df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0)
+    df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, nrows=1000)
+    #df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0)
 
     if (multi_threaded):
         threads = [] 

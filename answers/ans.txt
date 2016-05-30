@@ -70,6 +70,53 @@ a. Apply your suggestions to this data and describe ways in which it is not clea
 		If you take example of time series 14, 17, 22, 25 they have respectively 61%, 45%, 64%, 75%  of the NaN
 		values.
 	
+3. Write a program to provide your best estimate for the mean and standard-deviation of each of the time-series. 
+		While calculating mean and stddev, I have simply ignored the NaN records.
+
+		a. What if you had only (very) limited RAM to run your program? Can you run your program without loading the whole time series in RAM?
+				Yes it is possible to calculate the mean and standard deviation without loading while time series. You can divide the series
+				in the equal parts and calculate the mean and standard deviation part by part. Later you could sum up the results for each part to get final
+				mean and stddev for whole of the series.
+
+				To sum up the results of the parts, you might have to refactor the stddev and mean formulas and later integrate them to calculate 
+				the standard deviation and mean.
+
+				Since I am ignoring the NaN values, count of samples from each part will differ.
+
+				Mean = (SumOfPart1 + SumOfPart2 + SumOfPart3 + ... + SumOfPart_N) / (sampleFromPart1 + sampleFromPart2 + sampleFromPart3 + ... + sampleFromPart_N)
+
+				While formula for standard deviation, to calculate it by part by part is bit tricky.
+	
+				lets say, series has N samples and each denoted by Xi where i could range from 1 to N.
+				while X is the mean of series.
+
+				standard_deviation = ((1/ (N-1))  (X - Xi)^2)^(0.5).
+				
+				the formula could be restructred to find the (X-Xi)^2, Where mean ,X, will be unknown till we finish with the mean and i will range from 1 to  N.
+				Xi i.e. X1, X2, X3 ... XN are the time series samples.
+				
+				so we can disintegate the (a-b)^2 to below.
+					(X-Xi)^2 =  	X^2 + X1^2 - 2X1*X
+								+	X^2 + X2^2 - 2X2*X
+								+	X^2 + X3^2 - 2X3*X
+								+	X^2 + X4^2 - 2X4*X
+								.
+								.
+								.
+								+	X^2 + XN^2 - 2XN*X
+
+								= (X1^2 + X^2 + X3^2 + .... + XN^2) + (N*X^2) - (2*X*(X1+ X2 + X3 + ... + XN))
+					In above formula, Xi represents the each sample in time series, which we already have.
+					While X is the mean of the whole series.
+
+					(X1+ X2 + X3 + ... + XN) = (SumOfPart1 + SumOfPart2 + SumOfPart3 + ... + SumOfPart_N) in the above mean formula.
+					while (X1^2 + X^2 + X3^2 + .... + XN^2) is something we will calculate while iterating through series part by part.
+					
+					When mean , X , is calculated at the end of iteration through series, we can easily have (X-Xi)^2 values, thus standard
+					deviation, without traversing the whole series twice.
+
+
+
 
 StackOverflow
 
@@ -93,4 +140,21 @@ stats:
 
 
 
+Questions
+You are given a dataset (attached/linked, dataLarge.gz, 727MB compressed) that consists of 25 time series.
 
+Set A:
+1. How will you analyze this data for cleanliness? 
+a. Apply your suggestions to this data and describe ways in which it is not clean.
+2. Describe which parts (if any) of the data you would want to find ways to clean and which parts (if any) you would abandon as being beyond cleanable and why.
+3. Write a program to provide your best estimate for the mean and standard-deviation of each of the time-series. 
+a. What if you had only (very) limited RAM to run your program? Can you run your program without loading the whole time series in RAM?
+b. What if you had multiple CPUs available - could you speed up your program by parallelizing it?
+4. Write a program to find the relation, if any, between series 2 and series 3. Describe your reasoning for what evidence you have found for this relation.
+a. What if you had only (very) limited RAM to run your program? Can you run your program without loading the whole time series in RAM? 
+b. What if you had multiple CPUs available - could you speed up your program by parallelizing it?
+5. Assume this dataset was data collected over a day and this collection was to be repeated every day. Describe ways in which you will store this data over time. 
+
+
+Set B:
+6. Write a program to compute the running PNL given a series of trades (quantity bought/sold) and a series of prices (attached/linked, trades.txt, 18.7KB uncompressed)
