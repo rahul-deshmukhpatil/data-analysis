@@ -17,7 +17,11 @@ from os.path import exists
 sys.path.insert(0, '../common')
 from error_print import eprint
 
-# Function definitions
+# check_dq_of_ts of time series
+#   find the count of nan values
+#   no of records whos values fall behind threshold of 
+#   +ve and -ve side of (5 * standard deviation)
+#   Plot the graph
 ###############################################################
 def check_dq_of_ts(ts, index):
     stddev=ts.std()
@@ -74,7 +78,7 @@ def usage():
     
 # Main 
 ###############################################################
-def main():
+def main_iterator():
     #get the data into data frame
     #df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, nrows=10000)
     df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0)
@@ -96,45 +100,59 @@ def main():
         # for each time series calculate the data quality
         for i in df.columns:
             check_dq_of_ts(df[[i]], i);
-      
-# to synchronize the output
-global print_lock
-print_lock = Lock()
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "hf:m", ["help", "file=", "mt"])
-except getopt.GetoptError as err:
-    # print help information and exit:
-    print str(err)  # will print something like "option -a not recognized"
-    usage()
-    sys.exit(2)
 
-dataLarge = 'None'
-multi_threaded = False
+# main function: 
+# initialize locks and global variables
+# get the command line options
+# check if input file exists
+# start the main iterator function
+######################################################################
+def main():
+    # to synchronize the output
+    global print_lock
+    print_lock = Lock()
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hf:m", ["help", "file=", "mt"])
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        print str(err)  # will print something like "option -a not recognized"
+        usage()
+        sys.exit(2)
 
-for o, a in opts:
-    if o in ("-m", "--mt"):
-        multi_threaded = True
-    elif o in ("-f", "--file"):
-        dataLarge = a
-    elif o in ("-h", "--help"):
+    global dataLarge
+    global multi_threaded
+    dataLarge = ''
+    multi_threaded = False
+
+    for o, a in opts:
+        if o in ("-m", "--mt"):
+            multi_threaded = True
+        elif o in ("-f", "--file"):
+            dataLarge = a
+        elif o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        else:
+            assert False, "unhandled option"
+
+    #read the data file location
+    absPath= os.getcwd()  + '/' + dataLarge
+
+    #see if file exists and then proceed
+    if not exists(dataLarge):
+        if(dataLarge == ''):
+            eprint("Please provide valid data file as -f argument on command line")
+        else:
+            eprint("Data file does not exists aborting : %s" %(dataLarge))
+            eprint("abs path : %s" %(absPath))
         usage()
         sys.exit()
     else:
-        assert False, "unhandled option"
+        eprint("Processing data file : %s " %(dataLarge))
 
-#read the data file location
-absPath= os.getcwd()  + '/' + dataLarge
+    if not os.path.exists('images'):
+        os.makedirs('images')
 
-#see if file exists and then proceed
-if not exists(dataLarge):
-    eprint("Data file does not exists aborting : %s" %(dataLarge))
-    eprint("abs path : %s" %(absPath))
-    usage()
-    sys.exit()
-else:
-    eprint("Processing data file : %s " %(dataLarge))
-
-if not os.path.exists('images'):
-    os.makedirs('images')
+    main_iterator()
 
 main()
