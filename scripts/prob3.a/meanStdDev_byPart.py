@@ -67,9 +67,10 @@ def num_records(fname):
             pass
     return i + 1
 
-# Main 
+# Main iterator over each series
 ###############################################################
-def main():
+def main_iterator():
+    global num_rows
     
     #get the data into data frame
     #df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0)
@@ -77,8 +78,9 @@ def main():
     total_rows = num_records(dataLarge)
     rows_read = 0
     
-    global num_rows   
     if(num_rows == 0):
+        eprint("Num rows : %d" %(num_rows))
+
         num_rows = total_rows
 
     while(rows_read < total_rows): 
@@ -109,57 +111,77 @@ def main():
     for i in df.columns:
         cal_mean_std(i)
 
-      
-# to synchronize the output
-global print_lock
-print_lock = Lock()
+# main function: 
+# initialize locks and global variables
+# get the command line options
+# check if input file exists
+# start the main iterator function
+######################################################################
+def main():
+    # to synchronize the output
+    global print_lock
+    print_lock = Lock()
 
-# to synchronize the summations
-global sum_lock
-sum_lock = Lock()
+    # to synchronize the summations
+    global sum_lock
+    sum_lock = Lock()
 
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "hf:r:m", ["help", "file=", "rows=", "mt"])
-except getopt.GetoptError as err:
-    # print help information and exit:
-    print str(err)  # will print something like "option -a not recognized"
-    usage()
-    sys.exit(2)
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hf:r:m", ["help", "file=", "rows=", "mt"])
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        print str(err)  # will print something like "option -a not recognized"
+        usage()
+        sys.exit(2)
 
-num_rows = 0
-dataLarge = 'None'
-multi_threaded = False
+   
+    global num_rows
+    global dataLarge
+    global multi_threaded
 
-total_sum = [0.0] * 26
-total_square_sum = [0.0] * 26
-total_samples = [0.0] * 26
+    num_rows = 0
+    dataLarge = 'None'
+    multi_threaded = False
 
-for o, a in opts:
-    if o in ("-m", "--mt"):
-        multi_threaded = True
-    elif o in ("-f", "--file"):
-        dataLarge = a
-    elif o in ("-r", "--rows"):
-        num_rows = int(a)
-    elif o in ("-h", "--help"):
+    global total_sum
+    global total_square_sum
+    global total_samples
+
+    total_sum = [0.0] * 26
+    total_square_sum = [0.0] * 26
+    total_samples = [0.0] * 26
+
+    for o, a in opts:
+        if o in ("-m", "--mt"):
+            multi_threaded = True
+        elif o in ("-f", "--file"):
+            dataLarge = a
+        elif o in ("-r", "--rows"):
+            num_rows = int(a)
+        elif o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        else:
+            assert False, "unhandled option"
+
+    #read the data file location
+    absPath= os.getcwd()  + '/' + dataLarge
+
+    #see if file exists and then proceed
+    if not exists(dataLarge):
+        eprint("Data file does not exists aborting : %s" %(dataLarge))
+        eprint("abs path : %s" %(absPath))
         usage()
         sys.exit()
     else:
-        assert False, "unhandled option"
+        eprint("Processing data file : %s " %(dataLarge))
 
-#read the data file location
-absPath= os.getcwd()  + '/' + dataLarge
+    if not os.path.exists('images'):
+        os.makedirs('images')
 
-#see if file exists and then proceed
-if not exists(dataLarge):
-    eprint("Data file does not exists aborting : %s" %(dataLarge))
-    eprint("abs path : %s" %(absPath))
-    usage()
-    sys.exit()
-else:
-    eprint("Processing data file : %s " %(dataLarge))
+    main_iterator()
 
-if not os.path.exists('images'):
-    os.makedirs('images')
-
+# Ivoke the main
+################################################
 main()
+
