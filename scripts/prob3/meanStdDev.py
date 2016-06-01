@@ -42,7 +42,7 @@ def cal_mean_std(ts):
 
 # Function definitions
 ###############################################################
-def check_dq_of_ts(ts, index):
+def calculate_stats(ts, index):
     stddev = ts.std()
     mean = ts.mean()
     cmean, cstddev = cal_mean_std(ts)
@@ -76,7 +76,7 @@ def usage():
     
 # Main 
 ###############################################################
-def main():
+def main_iterator():
     #get the data into data frame
     df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, nrows=1000)
     #df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0)
@@ -84,7 +84,7 @@ def main():
     if (multi_threaded):
         threads = [] 
         for i in df.columns:
-             t = Thread(target=check_dq_of_ts, args=(df[[i]], i))
+             t = Thread(target=calculate_stats, args=(df[[i]], i))
              threads.append(t)
         
         # Start all threads
@@ -97,46 +97,62 @@ def main():
     else:
         # for each time series calculate the data quality
         for i in df.columns:
-            check_dq_of_ts(df[[i]], i);
-      
-# to synchronize the output
-global print_lock
-print_lock = Lock()
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "hf:m", ["help", "file=", "mt"])
-except getopt.GetoptError as err:
-    # print help information and exit:
-    print str(err)  # will print something like "option -a not recognized"
-    usage()
-    sys.exit(2)
+            calculate_stats(df[[i]], i);
 
-dataLarge = 'None'
-multi_threaded = False
+# main function: 
+# initialize locks and global variables
+# get the command line options
+# check if input file exists
+# start the main iterator function
+######################################################################
+def main():
+		 
+	# to synchronize the output
+	global print_lock
+	print_lock = Lock()
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], "hf:m", ["help", "file=", "mt"])
+	except getopt.GetoptError as err:
+		# print help information and exit:
+		print str(err)  # will print something like "option -a not recognized"
+		usage()
+		sys.exit(2)
 
-for o, a in opts:
-    if o in ("-m", "--mt"):
-        multi_threaded = True
-    elif o in ("-f", "--file"):
-        dataLarge = a
-    elif o in ("-h", "--help"):
-        usage()
-        sys.exit()
-    else:
-        assert False, "unhandled option"
+	global dataLarge
+	global multi_threaded
 
-#read the data file location
-absPath= os.getcwd()  + '/' + dataLarge
+	dataLarge = 'None'
+	multi_threaded = False
 
-#see if file exists and then proceed
-if not exists(dataLarge):
-    eprint("Data file does not exists aborting : %s" %(dataLarge))
-    eprint("abs path : %s" %(absPath))
-    usage()
-    sys.exit()
-else:
-    eprint("Processing data file : %s " %(dataLarge))
+	for o, a in opts:
+		if o in ("-m", "--mt"):
+			multi_threaded = True
+		elif o in ("-f", "--file"):
+			dataLarge = a
+		elif o in ("-h", "--help"):
+			usage()
+			sys.exit()
+		else:
+			assert False, "unhandled option"
 
-if not os.path.exists('images'):
-    os.makedirs('images')
+	#read the data file location
+	absPath= os.getcwd()  + '/' + dataLarge
 
+	#see if file exists and then proceed
+	if not exists(dataLarge):
+		eprint("Data file does not exists aborting : %s" %(dataLarge))
+		eprint("abs path : %s" %(absPath))
+		usage()
+		sys.exit()
+	else:
+		eprint("Processing data file : %s " %(dataLarge))
+
+	if not os.path.exists('images'):
+		os.makedirs('images')
+
+	main_iterator()
+
+
+# Ivoke the main
+################################################
 main()
