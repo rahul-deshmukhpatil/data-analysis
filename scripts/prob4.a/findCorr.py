@@ -52,13 +52,13 @@ def calculate_stats(ts, index):
 def usage():
     eprint(" ****************************************************************************")
     eprint(" %s usage : " %(argv[0]))
-    eprint(" %s -f <data file> [-m] -s 2,3" %(argv[0]))
+    eprint(" For correlation between series 2 and 3. Do analysis in 4 equal parts")
+    eprint(" %s -f <data file> [-m] -s 2,3 -p 4" %(argv[0]))
     eprint(" eg %s -f dataLarge")
     eprint(" -f --file  : data file containing time series with 0th coloumn as index")
-    eprint(" -m --mt    : run in multithreaded mode")
     eprint(" -a --aggr  : num of records to aggr and represent as single record, default is 100000")
-    eprint(" -r --rows  : count of rows to load at a time from time series")
     eprint(" -s --series : , saperated two series indices to compare ")
+    eprint(" -p --parts : No of equal parts for which to calculate the correlation")
     eprint(" -h --help  : help")
     eprint(" ****************************************************************************")
     
@@ -75,34 +75,49 @@ def num_records(fname):
 def main_iterator():
     global num_rows
     global revised_values
-   
-    #df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, usecols=[0, index1, index2], skiprows=2500000, nrows=2500000)
-    df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, usecols=[0, index1, index2])
-    total_rows = df.shape[0]
-    rindex1 = [0.0] * ((total_rows/aggr_records) + 1)
-    rindex2 = [0.0] * ((total_rows/aggr_records) + 1)
-    df = df.replace(to_replace='NaN', value =0.0).cumsum()
-    
-    i = 0
-    rows_read = 0
-    while(rows_read < total_rows):
-        # Read only frame within the df
-        read_till = rows_read + aggr_records
-        if(read_till > total_rows):
-            read_till = total_rows
 
-        #eprint("i %d, read_till %d" %(i, read_till))
-        #rindex1[i] = df[[index1]].iloc[rows_read:read_till].sum();
-        #rindex2[i] = df[[index2]].iloc[rows_read:read_till].sum();
-        rindex1[i] = df[[index1]].iloc[read_till-1]
-        rindex2[i] = df[[index2]].iloc[read_till-1]
-        eprint(" %f : %f" %(rindex1[i], rindex2[i]))
-        i += 1
-        rows_read += aggr_records
+    records_in_file = num_records(dataLarge)
+    parts_size = records_in_file / parts
 
-    #Now calculte the rho  and p-value by spearman ranking for correlation
-    rho, pvalue = st.spearmanr(rindex1, rindex2)
-    print "For index %d and %d, spearman rho: %f, pvalue %f" %(index1, index2, rho, pvalue)
+    skip_rows = 0
+    part_index = 1
+
+    while(skip_rows < records_in_file):
+
+        #df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, usecols=[0, index1, index2], skiprows=2500000, nrows=2500000)
+        eprint("Read rows %d" %(skip_rows + parts_size))
+        df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, usecols=[0, index1, index2], skiprows=skip_rows, nrows=parts_size)
+        total_rows = df.shape[0]
+        rindex1 = [0.0] * ((total_rows/aggr_records) + 1)
+        rindex2 = [0.0] * ((total_rows/aggr_records) + 1)
+        df = df.replace(to_replace='NaN', value =0.0).cumsum()
+        
+        i = 0
+        rows_read = 0
+        while(rows_read < total_rows):
+            # Read only frame within the df
+            read_till = rows_read + aggr_records
+            if(read_till > total_rows):
+                read_till = total_rows
+
+            #eprint("i %d, read_till %d" %(i, read_till))
+            #rindex1[i] = df[[index1]].iloc[rows_read:read_till].sum();
+            #rindex2[i] = df[[index2]].iloc[rows_read:read_till].sum();
+            rindex1[i] = df[[index1]].iloc[read_till-1]
+            rindex2[i] = df[[index2]].iloc[read_till-1]
+            eprint(" %f : %f" %(rindex1[i], rindex2[i]))
+            i += 1
+            rows_read += aggr_records
+
+        #free the memory 
+        del df
+
+        #Now calculte the rho  and p-value by spearman ranking for correlation
+        rho, pvalue = st.spearmanr(rindex1, rindex2)
+        print "For index %d and %d, part %d spearman rho: %f, pvalue %f" %(index1, index2, part_index, rho, pvalue)
+
+        skip_rows += parts_size
+        part_index += 1
 
 # main function: 
 # initialize locks and global variables
@@ -120,7 +135,7 @@ def main():
     sum_lock = Lock()
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ha:f:r:s:m", ["help", "aggr=", "file=", "rows=", "series=", "mt"])
+        opts, args = getopt.getopt(sys.argv[1:], "ha:f:s:p:", ["help", "aggr=", "file=", "series=", "parts="])
     except getopt.GetoptError as err:
         # print help information and exit:
         print str(err)  # will print something like "option -a not recognized"
@@ -128,29 +143,26 @@ def main():
         sys.exit(2)
 
    
-    global num_rows
     global dataLarge
-    global multi_threaded
     global index1
     global index2
     global aggr_records 
+    global parts
 
-    num_rows = 0
     dataLarge = 'None'
     multi_threaded = False
     index1 = 0
     index2 = 0
     aggr_records = 100000 
+    parts = 1
 
     for o, a in opts:
         if o in ("-a", "--aggr"):
             aggr_records = int(a)
-        elif o in ("-m", "--mt"):
-            multi_threaded = True
         elif o in ("-f", "--file"):
             dataLarge = a
-        elif o in ("-r", "--rows"):
-            num_rows = int(a)
+        elif o in ("-p", "--parts"):
+            parts = int(a)
         elif o in ("-s", "--series"):
             index1, index2 = a.split(',')
         elif o in ("-h", "--help"):
