@@ -74,9 +74,10 @@ def num_records(fname):
             pass
     return i + 1
 
-# Main 
+# Main iterator over each series
 ###############################################################
-def main():
+def main_iterator():
+    global num_rows   
     
     #get the data into data frame
     #df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0)
@@ -90,13 +91,12 @@ def main():
     for i in df_sample.columns:
         rows_read = 0
         
-        global num_rows   
         if(num_rows == 0):
             num_rows = total_rows
 
         while(rows_read < total_rows): 
             # skip the first records_read and read only nrows
-            df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, skiprows=rows_read, nrows=num_rows)
+            df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, usecols=[0,i], skiprows=rows_read, nrows=num_rows)
 
             if (multi_threaded):
                 threads = [] 
@@ -118,57 +118,76 @@ def main():
         #Now calculte the mean and std_deviation with summerizing all above computed values
         cal_mean_std(i)
 
-      
-# to synchronize the output
-global print_lock
-print_lock = Lock()
+# main function: 
+# initialize locks and global variables
+# get the command line options
+# check if input file exists
+# start the main iterator function
+######################################################################
+def main():
+          
+    # to synchronize the output
+    global print_lock
+    print_lock = Lock()
 
-# to synchronize the summations
-global sum_lock
-sum_lock = Lock()
+    # to synchronize the summations
+    global sum_lock
+    sum_lock = Lock()
 
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "hf:r:m", ["help", "file=", "rows=", "mt"])
-except getopt.GetoptError as err:
-    # print help information and exit:
-    print str(err)  # will print something like "option -a not recognized"
-    usage()
-    sys.exit(2)
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hf:r:m", ["help", "file=", "rows=", "mt"])
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        print str(err)  # will print something like "option -a not recognized"
+        usage()
+        sys.exit(2)
 
-num_rows = 0
-dataLarge = 'None'
-multi_threaded = False
+   
+    global num_rows
+    global dataLarge
+    global multi_threaded
+    num_rows = 0
+    dataLarge = 'None'
+    multi_threaded = False
 
-total_sum = [0.0] * 26
-total_square_sum = [0.0] * 26
-total_samples = [0.0] * 26
+    global total_sum
+    global total_square_sum
+    global total_samples
+    total_sum = [0.0] * 26
+    total_square_sum = [0.0] * 26
+    total_samples = [0.0] * 26
 
-for o, a in opts:
-    if o in ("-m", "--mt"):
-        multi_threaded = True
-    elif o in ("-f", "--file"):
-        dataLarge = a
-    elif o in ("-r", "--rows"):
-        num_rows = int(a)
-    elif o in ("-h", "--help"):
+    for o, a in opts:
+        if o in ("-m", "--mt"):
+            multi_threaded = True
+        elif o in ("-f", "--file"):
+            dataLarge = a
+        elif o in ("-r", "--rows"):
+            num_rows = int(a)
+        elif o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        else:
+            assert False, "unhandled option"
+
+    #read the data file location
+    absPath= os.getcwd()  + '/' + dataLarge
+
+    #see if file exists and then proceed
+    if not exists(dataLarge):
+        eprint("Data file does not exists aborting : %s" %(dataLarge))
+        eprint("abs path : %s" %(absPath))
         usage()
         sys.exit()
     else:
-        assert False, "unhandled option"
+        eprint("Processing data file : %s " %(dataLarge))
 
-#read the data file location
-absPath= os.getcwd()  + '/' + dataLarge
+    if not os.path.exists('images'):
+        os.makedirs('images')
 
-#see if file exists and then proceed
-if not exists(dataLarge):
-    eprint("Data file does not exists aborting : %s" %(dataLarge))
-    eprint("abs path : %s" %(absPath))
-    usage()
-    sys.exit()
-else:
-    eprint("Processing data file : %s " %(dataLarge))
+    main_iterator()
 
-if not os.path.exists('images'):
-    os.makedirs('images')
 
+# Ivoke the main
+################################################
 main()

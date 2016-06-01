@@ -74,7 +74,7 @@ def usage():
     eprint(" -h --help  : help")
     eprint(" ****************************************************************************")
     
-# Main 
+# Main iterator over each series 
 ###############################################################
 def main_iterator():
     #get the data into data frame
