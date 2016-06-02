@@ -19,34 +19,6 @@ from os.path import exists
 sys.path.insert(0, '../common')
 from error_print import eprint
 
-# calculate the mean and std deviation 
-###############################################################
-def cal_mean_std(index):
-    mean = 0.0
-    stddev = 0.0
-
-    with sum_lock:
-		mean = total_sum[index] / total_samples[index]
-		variance_num = total_square_sum[index] + (total_samples[index]*(mean * mean)) - (2 * mean * total_sum[index])
-		variance = variance_num / (total_samples[index] - 1)
-		stddev = variance ** 0.5
-    
-    #eprint("ts: %d, total_sum %f, total_samples %d, total_square_sum %f" %(index, total_sum[index], total_samples[index], variance_num))
-
-    with print_lock:
-        print "ts: %d, mean: %f, stddev: %f" %(index, mean, stddev)
-
-# Function definitions
-###############################################################
-def calculate_stats(ts, index):
-    length = ts.shape[0] 
-    for i in range(0, length):
-        if(not np.isnan(float(ts.iloc[i]))):
-            total_sum[index] += ts.iloc[i] 
-            total_square_sum[index] += (ts.iloc[i] * ts.iloc[i])
-    total_samples[index] += ts.count()
-    #eprint("total_sum %f, total_square_sum %f" %(total_sum[index], total_square_sum[index]))
-
 # Usage help
 ###############################################################
 def usage():
@@ -82,30 +54,28 @@ def main_iterator():
     skip_rows = 0
     part_index = 1
 
-    while(skip_rows < records_in_file):
+    while(part_index <= parts):
 
         #df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, usecols=[0, index1, index2], skiprows=2500000, nrows=2500000)
-        eprint("Read rows %d" %(skip_rows + parts_size))
-        df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, usecols=[0, index1, index2], skiprows=skip_rows, nrows=parts_size)
+        eprint("Read rows till %d. skip rows: %d , parts_size %d " %(skip_rows + parts_size, skip_rows, parts_size))
+        df = pd.read_csv(dataLarge, sep=' ', engine='python', header=None, index_col=0, usecols=[0, index1, index2], skiprows=skip_rows, nrows=parts_size)
+        df = df.replace(to_replace='NaN', value =0.0).cumsum()
         total_rows = df.shape[0]
         rindex1 = [0.0] * ((total_rows/aggr_records) + 1)
         rindex2 = [0.0] * ((total_rows/aggr_records) + 1)
-        df = df.replace(to_replace='NaN', value =0.0).cumsum()
         
         i = 0
         rows_read = 0
         while(rows_read < total_rows):
-            # Read only frame within the df
             read_till = rows_read + aggr_records
             if(read_till > total_rows):
                 read_till = total_rows
-
             #eprint("i %d, read_till %d" %(i, read_till))
             #rindex1[i] = df[[index1]].iloc[rows_read:read_till].sum();
             #rindex2[i] = df[[index2]].iloc[rows_read:read_till].sum();
             rindex1[i] = df[[index1]].iloc[read_till-1]
             rindex2[i] = df[[index2]].iloc[read_till-1]
-            eprint(" %f : %f" %(rindex1[i], rindex2[i]))
+            eprint("%d] %f : %f" %(i, rindex1[i], rindex2[i]))
             i += 1
             rows_read += aggr_records
 
