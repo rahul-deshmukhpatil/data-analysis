@@ -85,7 +85,7 @@ def main_iterator():
 
     while(rows_read < total_rows): 
         # skip the first records_read and read only nrows
-        df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, skiprows=rows_read, nrows=num_rows)
+        df = pd.read_csv(dataLarge, engine='python', sep=' ', header=None, index_col=0, skiprows=rows_read, nrows=num_rows)
 
         if (multi_threaded):
             threads = [] 
