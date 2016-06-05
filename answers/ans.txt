@@ -1,6 +1,8 @@
 Software versions used
 	python : 2.7.6 
 	pandas : 0.13.1
+	scipy : 0.13.1
+	numpy : 0.13.1
 
 1. How will you analyze this data for cleanliness? 
 	Mainly data cleanliness could be checked via three methods
@@ -117,6 +119,30 @@ a. Apply your suggestions to this data and describe ways in which it is not clea
 
 
 
+4. Write a program to find the relation, if any, between series 2 and series 3. Describe your reasoning for what evidence you have found for this relation.
+
+		I tried to find the correlation between series 2 and 3. You have given 5 million sample points during whole day and sample points seems to be
+		difference between two successive recordings. Since number of samples are too granular, represent sample taken apart few milliseconds seconds,
+		it is difficult and time consuming to calculate the correlation between two time serieses. As well it might give wrong correlation result to 
+		analyse the differences taken at such minute level. so I aggregated the number of samples to represent the movement over certain larger period of time
+		, lets say 10 mins. Aggregating, cumulative summing, all milliseconds samples within that particular 10 mins, will give you collective movement over 10 mins.
+		Now it becomes easy to find the correlation between two series when we have clear direction change between two points, 
+		which is represented by movement during larger time period of 10 mins.
+
+		The correlation finding algorithm used is spearmans rank algorithm as we wanted to know only direction of change with respect to each other between
+		two series. It might happen than series 3 has same direction change as of series 2, but at high magnitude.
+
+		There is a relation between two series 2 and 3. For first half series 2 and 3 are following each other, moving in same direction and have +ve correlation. 
+		While for rest half they are showing -ve correlation. ie. they move in opposite. To do this, I have program which basically devides the time series into
+		multiple parts ie larger time frames. And tries to find the correlation between two serieses for
+			
+		a. What if you had only (very) limited RAM to run your program? Can you run your program without loading the whole time series in RAM? 
+			Above each part of the program could be loaded saperatly, one by one, for the analysis. So if you divide your whole day in 6 parts,
+			or per hour parts. Then you need to bring only hourly or 1/6 th data into the RAM. I have chosen single part as unit of data to be loaded
+			into the RAM, but same could be done on the more granular level of rows.
+
+		b. What if you had multiple CPUs available - could you speed up your program by parallelizing it?
+			Each part represting particular hour above could be done processed  parallely
 
 StackOverflow
 
