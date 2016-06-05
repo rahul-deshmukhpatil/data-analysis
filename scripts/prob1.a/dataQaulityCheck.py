@@ -3,6 +3,8 @@
 # Global imports
 import os
 import sys
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -77,8 +79,7 @@ def main_iterator():
             plt.xlabel('Time')
             plt.ylabel('Values(Difference recorded)')
             plt.title('Distribution of Events Values : Time series ' +  `i` + ',' + stddevstr)
-            ts[[i]] = ts[[i]].replace(to_replace='NaN', value=stddev*5)
-            plt.plot(ts[[i]], 'bo')
+            plt.plot(ts[[i]].replace(to_replace='NaN', value=stddev*5), 'bo')
             fig='images/ts' + `i` + '-dataQaulity.png'
             plt.savefig(fig)
             plt.close()
@@ -87,7 +88,7 @@ def main_iterator():
             plt.xlabel('Time')
             plt.ylabel('Incrimental Difference Summation')
             plt.title('Incrimental Difference Summation: Time series ' +  `i`)
-            plt.plot(ts[[i]].cumsum())
+            plt.plot(ts[[i]].replace(to_replace='NaN', value=0).cumsum())
             fig='images/ts' + `i` + '-incremental.png'
             plt.savefig(fig)
             plt.close()
