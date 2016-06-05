@@ -78,8 +78,7 @@ def usage():
 ###############################################################
 def main_iterator():
     #get the data into data frame
-    df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, nrows=1000)
-    #df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0)
+    df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0)
 
     if (multi_threaded):
         threads = [] 
