@@ -43,26 +43,6 @@ def check_dq_of_ts(ts, index):
     with print_lock:
         print "ts: %d, mean: %f, stddev : %f, total_records %d, bad_prct %f, bad_records %d ( nan_count %d + lower_breaks %d + upper_breaks %d)" %(index, mean, stddev, total_records, prct_bad, bad_records, nan_count, lower_breaks, upper_breaks)
 
-    #plot the incrimental graph
-    plt.xlabel('Time')
-    plt.ylabel('Incrimental Difference Summation')
-    plt.title('Incrimental Difference Summation: Time series ' +  `index`)
-    plt.plot(ts.cumsum())
-    fig='images/ts' + `index` + '-incremental.png'
-    plt.savefig(fig)
-    plt.close()
-
-    # Plot the difference graph 
-    stddevstr='stddev : ' + str(float(stddev))
-    #f, ax = plt.subplots(1,1)
-    #plt.text(0.05, 0.95, s=stddevstr, ha='left', va='center', transform = ax.transAxes)
-    plt.xlabel('Time')
-    plt.ylabel('Values(Difference recorded)')
-    plt.title('Distribution of Events Values : Time series ' +  `index` + ',' + stddevstr)
-    plt.plot(ts.replace(to_replace='NaN', value=stddev*5), 'bo')
-    fig='images/ts' + `index` + '-dataQaulity.png'
-    plt.savefig(fig)
-    plt.close()
 
 # Usage help
 ###############################################################
@@ -80,14 +60,15 @@ def usage():
 ###############################################################
 def main_iterator():
     #get the data into data frame
-    #df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, nrows=10000)
-    df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0)
+    df = pd.read_csv(dataLarge, engine='c', sep=' ', header=None, index_col=0, nrows=1)
+    columns = df.shape[1]
 
     if (multi_threaded):
         threads = [] 
-        for i in df.columns:
-             t = Thread(target=check_dq_of_ts, args=(df[[i]], i))
-             threads.append(t)
+        for i in range(1, columns+1):
+            ts = pd.read_csv(dataLarge, engine='c', sep=' ', header=None, index_col=0, usecols=[0, i])
+            t = Thread(target=check_dq_of_ts, args=(ts[[i]], i))
+            threads.append(t)
         
         # Start all threads
         for x in threads:
@@ -98,8 +79,34 @@ def main_iterator():
             x.join()
     else:
         # for each time series calculate the data quality
-        for i in df.columns:
-            check_dq_of_ts(df[[i]], i);
+        for i in range(1, columns+1):
+            ts = pd.read_csv(dataLarge, engine='c', sep=' ', header=None, index_col=0, usecols=[0, i])
+            check_dq_of_ts(ts[[i]], i);
+
+    for i in range(1, columns+1):
+        ts = pd.read_csv(dataLarge, engine='c', sep=' ', header=None, index_col=0, usecols=[0, i])
+        stddev = ts[[i]].std()
+        # Plot the difference graph 
+        stddevstr='stddev : ' + str(float(stddev))
+        #f, ax = plt.subplots(1,1)
+        #plt.text(0.05, 0.95, s=stddevstr, ha='left', va='center', transform = ax.transAxes)
+        plt.xlabel('Time')
+        plt.ylabel('Values(Difference recorded)')
+        plt.title('Distribution of Events Values : Time series ' +  `i` + ',' + stddevstr)
+        ts[[i]] = ts[[i]].replace(to_replace='NaN', value=stddev*5)
+        plt.plot(ts[[i]], 'bo')
+        fig='images/ts' + `i` + '-dataQaulity.png'
+        plt.savefig(fig)
+        plt.close()
+
+        #plot the incrimental graph
+        plt.xlabel('Time')
+        plt.ylabel('Incrimental Difference Summation')
+        plt.title('Incrimental Difference Summation: Time series ' +  `i`)
+        plt.plot(ts[[i]].cumsum())
+        fig='images/ts' + `i` + '-incremental.png'
+        plt.savefig(fig)
+        plt.close()
 
 # main function: 
 # initialize locks and global variables
