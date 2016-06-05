@@ -4,6 +4,8 @@
 import os
 import sys
 import math
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -61,9 +63,10 @@ def main_iterator():
         df = pd.read_csv(dataLarge, sep=' ', engine='python', header=None, index_col=0, usecols=[0, index1, index2], skiprows=skip_rows, nrows=parts_size)
         df = df.replace(to_replace='NaN', value =0.0).cumsum()
         total_rows = df.shape[0]
-        rindex1 = [0.0] * ((total_rows/aggr_records) + 1)
-        rindex2 = [0.0] * ((total_rows/aggr_records) + 1)
         
+        rindex1 = []
+        rindex2 = []
+
         i = 0
         rows_read = 0
         while(rows_read < total_rows):
@@ -73,18 +76,29 @@ def main_iterator():
             #eprint("i %d, read_till %d" %(i, read_till))
             #rindex1[i] = df[[index1]].iloc[rows_read:read_till].sum();
             #rindex2[i] = df[[index2]].iloc[rows_read:read_till].sum();
-            rindex1[i] = df[[index1]].iloc[read_till-1]
-            rindex2[i] = df[[index2]].iloc[read_till-1]
+            rindex1.append(df[[index1]].iloc[read_till-1])
+            rindex2.append(df[[index2]].iloc[read_till-1])
             #eprint("%d] %f : %f" %(i, rindex1[i], rindex2[i]))
             i += 1
             rows_read += aggr_records
 
-        #free the memory 
-        del df
-
         #Now calculte the rho  and p-value by spearman ranking for correlation
         rho, pvalue = st.spearmanr(rindex1, rindex2)
         print "For series %d and %d, part %d spearman rho: %f" %(index1, index2, part_index, rho)
+
+        #plot the graph per part
+        #plot the incrimental graph
+        image_name='images/TS' + `index1` + '-' + 'TS' + `index2` + '-Part-' + `part_index` + '.png'
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111)
+        plt.xlabel('Time')
+        plt.ylabel('Incrimental Difference Summation')
+        plt.title('TS' +  `index1` + ' Vs' + ' TS' + `index2` + ' [ Part' + `part_index` + '] rho(corr coef):' + `rho`)
+        plt.plot(rindex1)
+        plt.plot(rindex2)
+        eprint("Fig: %s" %(image_name))
+        plt.savefig(image_name)
+        plt.close()
 
         skip_rows += parts_size
         part_index += 1
