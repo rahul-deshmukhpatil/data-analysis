@@ -57,7 +57,7 @@ def main_iterator():
     while(part_index <= parts):
 
         #df = pd.read_csv(dataLarge, sep=' ', header=None, index_col=0, usecols=[0, index1, index2], skiprows=2500000, nrows=2500000)
-        eprint("Read rows till %d. skip rows: %d , parts_size %d " %(skip_rows + parts_size, skip_rows, parts_size))
+        #eprint("Read rows till %d. skip rows: %d , parts_size %d " %(skip_rows + parts_size, skip_rows, parts_size))
         df = pd.read_csv(dataLarge, sep=' ', engine='python', header=None, index_col=0, usecols=[0, index1, index2], skiprows=skip_rows, nrows=parts_size)
         df = df.replace(to_replace='NaN', value =0.0).cumsum()
         total_rows = df.shape[0]
@@ -75,7 +75,7 @@ def main_iterator():
             #rindex2[i] = df[[index2]].iloc[rows_read:read_till].sum();
             rindex1[i] = df[[index1]].iloc[read_till-1]
             rindex2[i] = df[[index2]].iloc[read_till-1]
-            eprint("%d] %f : %f" %(i, rindex1[i], rindex2[i]))
+            #eprint("%d] %f : %f" %(i, rindex1[i], rindex2[i]))
             i += 1
             rows_read += aggr_records
 
@@ -84,7 +84,7 @@ def main_iterator():
 
         #Now calculte the rho  and p-value by spearman ranking for correlation
         rho, pvalue = st.spearmanr(rindex1, rindex2)
-        print "For index %d and %d, part %d spearman rho: %f, pvalue %f" %(index1, index2, part_index, rho, pvalue)
+        print "For series %d and %d, part %d spearman rho: %f" %(index1, index2, part_index, rho)
 
         skip_rows += parts_size
         part_index += 1
