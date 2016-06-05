@@ -72,6 +72,15 @@ def find_corr(part_index, skip_rows, parts_size):
     result_rho[part_index] = rho
     #print "For index %d and %d, part %d spearman rho: %f, pvalue %f" %(index1, index2, part_index, rho, pvalue)
 
+    #plot the incrimental graph
+    #plt.xlabel('Time')
+    #plt.ylabel('Difference Summation')
+    #plt.title('Difference Summation: Time series ' +  `index1`)
+    #plt.plot()
+    #plt.plot([1,3,4,5])
+    #fig='images/ts' + `index1` + '-incremental.png'
+    #plt.savefig(fig)
+    #plt.close()
 
 # Main iterator over each series
 ###############################################################
