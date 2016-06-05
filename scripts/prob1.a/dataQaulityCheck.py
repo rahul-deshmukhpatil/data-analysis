@@ -49,10 +49,10 @@ def check_dq_of_ts(ts, index):
 def usage():
     eprint(" ****************************************************************************")
     eprint(" %s usage : " %(argv[0]))
-    eprint(" %s -f <data file> [-m]" %(argv[0]))
+    eprint(" %s -f <data file> [-g]" %(argv[0]))
     eprint(" eg %s -f dataLarge")
     eprint(" -f --file  : data file containing time series with 0th coloumn as index")
-    eprint(" -m --mt    : run in multithreaded mode")
+    eprint(" -g --graph : plot the graphs, Needs addition time ")
     eprint(" -h --help  : help")
     eprint(" ****************************************************************************")
     
@@ -60,53 +60,37 @@ def usage():
 ###############################################################
 def main_iterator():
     #get the data into data frame
-    df = pd.read_csv(dataLarge, engine='c', sep=' ', header=None, index_col=0, nrows=1)
-    columns = df.shape[1]
+    ts = pd.read_csv(dataLarge, engine='c', sep=' ', header=None, index_col=0)
+    columns = ts.shape[1]
 
-    if (multi_threaded):
-        threads = [] 
-        for i in range(1, columns+1):
-            ts = pd.read_csv(dataLarge, engine='c', sep=' ', header=None, index_col=0, usecols=[0, i])
-            t = Thread(target=check_dq_of_ts, args=(ts[[i]], i))
-            threads.append(t)
-        
-        # Start all threads
-        for x in threads:
-            x.start()
-        
-        # Join all threads
-        for x in threads:
-            x.join()
-    else:
-        # for each time series calculate the data quality
-        for i in range(1, columns+1):
-            ts = pd.read_csv(dataLarge, engine='c', sep=' ', header=None, index_col=0, usecols=[0, i])
-            check_dq_of_ts(ts[[i]], i);
-
+    # for each time series calculate the data quality
     for i in range(1, columns+1):
-        ts = pd.read_csv(dataLarge, engine='c', sep=' ', header=None, index_col=0, usecols=[0, i])
-        stddev = ts[[i]].std()
-        # Plot the difference graph 
-        stddevstr='stddev : ' + str(float(stddev))
-        #f, ax = plt.subplots(1,1)
-        #plt.text(0.05, 0.95, s=stddevstr, ha='left', va='center', transform = ax.transAxes)
-        plt.xlabel('Time')
-        plt.ylabel('Values(Difference recorded)')
-        plt.title('Distribution of Events Values : Time series ' +  `i` + ',' + stddevstr)
-        ts[[i]] = ts[[i]].replace(to_replace='NaN', value=stddev*5)
-        plt.plot(ts[[i]], 'bo')
-        fig='images/ts' + `i` + '-dataQaulity.png'
-        plt.savefig(fig)
-        plt.close()
+        check_dq_of_ts(ts[[i]], i);
 
-        #plot the incrimental graph
-        plt.xlabel('Time')
-        plt.ylabel('Incrimental Difference Summation')
-        plt.title('Incrimental Difference Summation: Time series ' +  `i`)
-        plt.plot(ts[[i]].cumsum())
-        fig='images/ts' + `i` + '-incremental.png'
-        plt.savefig(fig)
-        plt.close()
+    if(plot_graphs):
+        for i in range(1, columns+1):
+            stddev = ts[[i]].std()
+            # Plot the difference graph 
+            stddevstr='stddev : ' + str(float(stddev))
+            #f, ax = plt.subplots(1,1)
+            #plt.text(0.05, 0.95, s=stddevstr, ha='left', va='center', transform = ax.transAxes)
+            plt.xlabel('Time')
+            plt.ylabel('Values(Difference recorded)')
+            plt.title('Distribution of Events Values : Time series ' +  `i` + ',' + stddevstr)
+            ts[[i]] = ts[[i]].replace(to_replace='NaN', value=stddev*5)
+            plt.plot(ts[[i]], 'bo')
+            fig='images/ts' + `i` + '-dataQaulity.png'
+            plt.savefig(fig)
+            plt.close()
+
+            #plot the incrimental graph
+            plt.xlabel('Time')
+            plt.ylabel('Incrimental Difference Summation')
+            plt.title('Incrimental Difference Summation: Time series ' +  `i`)
+            plt.plot(ts[[i]].cumsum())
+            fig='images/ts' + `i` + '-incremental.png'
+            plt.savefig(fig)
+            plt.close()
 
 # main function: 
 # initialize locks and global variables
@@ -119,7 +103,7 @@ def main():
     global print_lock
     print_lock = Lock()
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hf:m", ["help", "file=", "mt"])
+        opts, args = getopt.getopt(sys.argv[1:], "hf:g", ["help", "file=", "graph"])
     except getopt.GetoptError as err:
         # print help information and exit:
         print str(err)  # will print something like "option -a not recognized"
@@ -127,13 +111,13 @@ def main():
         sys.exit(2)
 
     global dataLarge
-    global multi_threaded
+    global plot_graphs
     dataLarge = ''
-    multi_threaded = False
+    plot_graphs = False
 
     for o, a in opts:
-        if o in ("-m", "--mt"):
-            multi_threaded = True
+        if o in ("-g", "--graph"):
+            plot_graphs = True
         elif o in ("-f", "--file"):
             dataLarge = a
         elif o in ("-h", "--help"):
