@@ -1,0 +1,5 @@
+ts: 1, mean: -0.014259, cmean: -0.014259, stddev: 33.075325, cstddev: 33.075325, mean_test PASS, stddev_test: PASS
+ts: 2, mean: -0.011122, cmean: -0.011122, stddev: 26.760964, cstddev: 26.760964, mean_test PASS, stddev_test: PASS
+ts: 3, mean: -0.004984, cmean: -0.004984, stddev: 26.094306, cstddev: 26.094306, mean_test PASS, stddev_test: PASS
+ts: 4, mean: 0.010942, cmean: 0.010942, stddev: 17.798823, cstddev: 17.798823, mean_test PASS, stddev_test: PASS
+ts: 5, mean: 250.042918, cmean: 250.042918, stddev: 1265.617389, cstddev: 1265.617389, mean_test PASS, stddev_test: PASS
