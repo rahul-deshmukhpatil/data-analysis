@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import getopt
-from threading import Thread
 from threading import Lock 
 
 from sys import argv
@@ -56,7 +55,6 @@ def usage():
     eprint(" eg %s -f dataLarge")
     eprint(" -f --file  : data file containing time series with 0th coloumn as index")
     eprint(" -r --rows  : count of rows to load at a time from time series")
-    eprint(" -m --mt    : run in multithreaded mode")
     eprint(" -h --help  : help")
     eprint(" ****************************************************************************")
     
@@ -86,23 +84,9 @@ def main_iterator():
         # skip the first records_read and read only nrows
         df = pd.read_csv(dataLarge, engine='python', sep=' ', header=None, index_col=0, skiprows=rows_read, nrows=num_rows)
 
-        if (multi_threaded):
-            threads = [] 
-            for i in df.columns:
-                 t = Thread(target=calculate_stats, args=(df[[i]], i))
-                 threads.append(t)
-            
-            # Start all threads
-            for x in threads:
-                x.start()
-            
-            # Join all threads
-            for x in threads:
-                x.join()
-        else:
-            # for each time series calculate the data quality
-            for i in df.columns:
-                calculate_stats(df[[i]], i);
+        # for each time series calculate the data quality
+        for i in df.columns:
+            calculate_stats(df[[i]], i);
 
         rows_read += num_rows
     
@@ -136,11 +120,9 @@ def main():
    
     global num_rows
     global dataLarge
-    global multi_threaded
 
     num_rows = 0
     dataLarge = 'None'
-    multi_threaded = False
 
     global total_sum
     global total_square_sum
@@ -151,9 +133,7 @@ def main():
     total_samples = [0.0] * 26
 
     for o, a in opts:
-        if o in ("-m", "--mt"):
-            multi_threaded = True
-        elif o in ("-f", "--file"):
+        if o in ("-f", "--file"):
             dataLarge = a
         elif o in ("-r", "--rows"):
             num_rows = int(a)
