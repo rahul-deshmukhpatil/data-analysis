@@ -21,22 +21,25 @@ from error_print import eprint
 # calculate the mean and std deviation 
 ###############################################################
 def cal_mean_std(ts):
-    cumsum  = 0.0
-    length = ts.count() + ts.isnull().sum() 
-    for i in range(0, length):
-        if(not np.isnan(float(ts.iloc[i]))):
-            cumsum += ts.iloc[i] 
+    samples = ts.count()
+    #for i in range(0, length):
+    #    if(not np.isnan(float(ts.iloc[i]))):
+    #        cumsum += ts.iloc[i] 
     
-    mean = cumsum/ts.count()
+    samples_sum = ts.sum()
+    mean = samples_sum / samples
 
     variance = 0.0
-    for i in range(0, length):
-        if(not np.isnan(float(ts.iloc[i]))):
-           variance += (mean - ts.iloc[i]) * (mean - ts.iloc[i])
+    #for i in range(0, length):
+    #    if(not np.isnan(float(ts.iloc[i]))):
+    #      variance += (mean - ts.iloc[i]) * (mean - ts.iloc[i])
+    square_sum = (ts * ts).sum()
     
-    #eprint("total_sum %f, total_samples %d, total_square_sum %f" %(cumsum, ts.count(), variance))
+    variance = (samples * mean * mean) + square_sum  - (2 * samples_sum * mean ) 
+    
+    #eprint("total_sum %f, total_samples %d, total_square_sum %f" %(samples_sum, samples, variance))
 
-    variance /= (ts.count() -1)
+    variance /= (samples - 1)
     stddev = variance ** (0.5) 
     return mean, stddev 
 

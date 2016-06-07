@@ -25,10 +25,10 @@ def cal_mean_std(index):
     stddev = 0.0
 
     with sum_lock:
-		mean = total_sum[index] / total_samples[index]
-		variance_num = total_square_sum[index] + (total_samples[index]*(mean * mean)) - (2 * mean * total_sum[index])
-		variance = variance_num / (total_samples[index] - 1)
-		stddev = variance ** 0.5
+        mean = total_sum[index] / total_samples[index]
+        variance_num = total_square_sum[index] + (total_samples[index]*(mean * mean)) - (2 * mean * total_sum[index])
+        variance = variance_num / (total_samples[index] - 1)
+        stddev = variance ** 0.5
     
     #eprint("ts: %d, total_sum %f, total_samples %d, total_square_sum %f" %(index, total_sum[index], total_samples[index], variance_num))
 
@@ -38,12 +38,13 @@ def cal_mean_std(index):
 # Function definitions
 ###############################################################
 def calculate_stats(ts, index):
-    length = ts.shape[0] 
-    for i in range(0, length):
-        if(not np.isnan(float(ts.iloc[i]))):
-            total_sum[index] += ts.iloc[i] 
-            total_square_sum[index] += (ts.iloc[i] * ts.iloc[i])
-    total_samples[index] += ts.count()
+    length = ts.count() 
+    sum = ts.sum() 
+    square_sum = (ts * ts).sum() 
+    with sum_lock:
+		total_sum[index] += sum 
+		total_square_sum[index] += square_sum 
+		total_samples[index] += length
     #eprint("total_sum %f, total_square_sum %f" %(total_sum[index], total_square_sum[index]))
 
 # Usage help
@@ -79,8 +80,6 @@ def main_iterator():
     rows_read = 0
     
     if(num_rows == 0):
-        eprint("Num rows : %d" %(num_rows))
-
         num_rows = total_rows
 
     while(rows_read < total_rows): 

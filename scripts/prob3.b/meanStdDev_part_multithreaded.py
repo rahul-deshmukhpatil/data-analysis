@@ -38,19 +38,15 @@ def cal_mean_std(index):
 # Function definitions
 ###############################################################
 def calculate_stats(ts, index):
-    length = ts.shape[0] 
-    total = 0.0
-    total_sq = 0.0 
-    for i in range(0, length):
-        if(not np.isnan(float(ts.iloc[i]))):
-            total += ts.iloc[i] 
-            total_sq += (ts.iloc[i] * ts.iloc[i])
-
+    length = ts.count() 
+    total = ts.sum()
+    total_sq = (ts * ts).sum()
+    
     #take a lock after calculating all the values
     with sum_lock:
         total_sum[index] += total
         total_square_sum[index] += total_sq 
-        total_samples[index] += ts.count()
+        total_samples[index] += length 
     #eprint("total_sum %f, total_square_sum %f" %(total_sum[index], total_square_sum[index]))
 
 # Usage help
